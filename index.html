@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STARK - AI Agricultural Decision-Support & Profit Optimization Platform</title>
+  <meta name="description" content="Production-style working prototype for Smart India Hackathon 2026. Real-time agricultural decision engine with live weather, multi-market profit radar, fair price guard, and sell-vs-wait scenarios.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌾</text></svg>">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       TOP NAVIGATION BAR
+       ========================================================================== -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <div class="brand-logo-badge">🌾</div>
+      <div class="brand-info">
+        <h1>STARK <span class="sih-badge">SIH 2026 Prototype</span></h1>
+        <div class="brand-tagline">From Farm Data to Profitable Decisions</div>
+      </div>
+    </div>
+
+    <div class="nav-controls">
+      <!-- Live / Demo Indicator Badge -->
+      <div id="liveStatusBadge" class="live-status-pill">
+        <span class="pulse-dot"></span>
+        <span id="liveStatusText">🟢 LIVE DATA</span>
+      </div>
+
+      <!-- Demo Profile Selector -->
+      <div class="demo-select-container">
+        <select id="demoProfileSelect" class="demo-profile-select" title="Load real input parameters for sample farmers">
+          <option value="">👤 Demo Farmer Profiles</option>
+          <option value="ramesh" selected>Ramesh (Tomato, Karur TN)</option>
+          <option value="priya">Priya (Potato, Agra UP)</option>
+          <option value="suresh">Suresh (Onion, Nashik MH)</option>
+          <option value="venkatesh">Venkatesh (Chilli, Guntur AP)</option>
+        </select>
+      </div>
+
+      <!-- Language Selector -->
+      <div class="lang-btn-group">
+        <button type="button" class="lang-btn active" data-lang="en">EN</button>
+        <button type="button" class="lang-btn" data-lang="ta">தமிழ்</button>
+        <button type="button" class="lang-btn" data-lang="hi">हिन्दी</button>
+      </div>
+
+      <!-- Farm Edit Button -->
+      <button type="button" id="openFarmModalBtn" class="btn-farm-edit">
+        <span>✏️</span> <span data-i18n="editFarmBtn">Edit My Farm</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       MAIN CONTENT CONTAINER
+       ========================================================================== -->
+  <main class="main-content">
+
+    <!-- 1. FARMER SUMMARY RIBBON -->
+    <section class="farmer-ribbon">
+      <div class="farmer-meta-left">
+        <div class="avatar-badge" id="farmerAvatar">👨‍🌾</div>
+        <div class="farmer-name-tag">
+          <h2><span id="farmerNameDisplay">Ramesh K.</span> <span id="cropEmoji">🍅</span></h2>
+          <div class="farmer-location-tag">
+            <span>📍</span> <span id="farmerLocationDisplay">Karur, Tamil Nadu</span>
+            <button type="button" id="btnGeolocation" class="chip-label" style="margin-left: 8px; cursor: pointer; background: transparent; border: none; color: var(--primary-dark); font-weight: 700; text-decoration: underline;">Auto-Detect GPS</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="farmer-meta-chips">
+        <div class="meta-chip">
+          <span class="chip-label">Crop & Variety</span>
+          <span class="chip-val" id="cropSummaryVal">Tomato (Vaibhav Hybrid)</span>
+        </div>
+        <div class="meta-chip">
+          <span class="chip-label">Land Area</span>
+          <span class="chip-val" id="landAreaVal">2.0 Acres</span>
+        </div>
+        <div class="meta-chip">
+          <span class="chip-label">Expected Yield</span>
+          <span class="chip-val" id="yieldSummaryVal">4,000 kg</span>
+        </div>
+        <div class="meta-chip">
+          <span class="chip-label">Crop Stage</span>
+          <span class="chip-val" id="cropStageVal">Harvesting</span>
+        </div>
+        <div class="meta-chip">
+          <span class="chip-label">Quality Grade</span>
+          <span class="chip-val" id="qualityGradeVal">Grade A (Firm, Red)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. HERO: STARK AI DECISION BANNER -->
+    <section class="hero-decision-card">
+      <div class="hero-header-row">
+        <div class="decision-badge-container">
+          <span class="ai-pill">🤖 STARK AI DECISION ENGINE</span>
+          <div id="decisionActionBadge" class="decision-action-badge badge-sell-now">
+            🟢 SELL TODAY
+          </div>
+        </div>
+
+        <button type="button" id="openExplainabilityBtn" class="hero-explain-trigger">
+          <span>⚖️</span> <span data-i18n="whyRecommended">Why did STARK recommend this?</span>
+        </button>
+      </div>
+
+      <div class="decision-headline" id="decisionHeadlineText">
+        Sell 4,000 kg Tomato immediately at Dindigul Vegetable Wholesale Market.
+      </div>
+
+      <div class="hero-metrics-grid">
+        <div class="hero-metric-box">
+          <div class="hero-metric-label" data-i18n="recommendedMarket">Recommended Market</div>
+          <div class="hero-metric-val" id="heroBestMarketVal">Dindigul Market</div>
+          <div class="hero-metric-sub" id="heroMarketDistSub">68 km • ₹28.6/kg</div>
+        </div>
+        <div class="hero-metric-box">
+          <div class="hero-metric-label" data-i18n="targetPrice">Target Selling Price</div>
+          <div class="hero-metric-val" id="heroTargetPriceVal">₹28.60 / kg</div>
+          <div class="hero-metric-sub">Verified Mandi Rate</div>
+        </div>
+        <div class="hero-metric-box">
+          <div class="hero-metric-label" data-i18n="expectedProfit">Expected Net Profit</div>
+          <div class="hero-metric-val highlight-green" id="heroExpectedProfitVal">₹78,400</div>
+          <div class="hero-metric-sub" id="heroRoiSub">ROI Margin: 224%</div>
+        </div>
+        <div class="hero-metric-box">
+          <div class="hero-metric-label" data-i18n="decisionConfidence">Decision Confidence</div>
+          <div class="hero-metric-val" id="heroConfidenceVal">92%</div>
+          <div class="hero-metric-sub" id="heroScoreSub">Score: 84 / 100</div>
+        </div>
+      </div>
+
+      <div class="hero-rationale-box">
+        <div class="rationale-title">🔍 Data-Driven Rationale & Evidence</div>
+        <ul class="rationale-list" id="heroRationaleList">
+          <!-- Populated dynamically -->
+        </ul>
+      </div>
+    </section>
+
+    <!-- 3. CORE ANALYTICAL DASHBOARD GRID -->
+    <div class="dashboard-grid">
+
+      <!-- COLUMN 1: PROFIT METER & WHAT-IF SIMULATOR (SPAN 8) -->
+      <div class="col-8" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        
+        <!-- FEATURE 1: PROFIT METER -->
+        <div class="app-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3>💰 <span data-i18n="profitMeterTitle">Profit Meter</span></h3>
+              <div class="card-subtitle">Real deterministic financial calculation based on production, transport & storage</div>
+            </div>
+            <div class="chip-label" id="costFreshnessLabel">Calculated in real-time</div>
+          </div>
+
+          <div class="profit-stats-grid">
+            <div class="stat-tile">
+              <span class="stat-label" data-i18n="totalInvestment">Total Investment</span>
+              <span class="stat-value" id="pmTotalCost">₹32,000</span>
+              <span class="stat-sub" id="pmCostPerKg">₹8.00 / kg</span>
+            </div>
+            <div class="stat-tile">
+              <span class="stat-label" data-i18n="expectedRevenue">Gross Revenue</span>
+              <span class="stat-value highlight-blue" id="pmGrossRevenue">₹1,14,400</span>
+              <span class="stat-sub" id="pmRevPerKg">₹28.60 / kg</span>
+            </div>
+            <div class="stat-tile">
+              <span class="stat-label" data-i18n="totalCost">Transport & Storage</span>
+              <span class="stat-value" id="pmLogisticsCost">₹4,000</span>
+              <span class="stat-sub" id="pmLogisticsPerKg">₹1.00 / kg</span>
+            </div>
+            <div class="stat-tile">
+              <span class="stat-label" data-i18n="netProfit">Expected Profit</span>
+              <span class="stat-value highlight-green" id="pmNetProfit">₹78,400</span>
+              <span class="stat-sub" id="pmProfitPerKg">₹19.60 / kg profit</span>
+            </div>
+            <div class="stat-tile">
+              <span class="stat-label" data-i18n="profitMargin">ROI Profit Margin</span>
+              <span class="stat-value highlight-green" id="pmProfitMargin">224%</span>
+              <span class="stat-sub">Return on Investment</span>
+            </div>
+          </div>
+
+          <!-- Stacked Ratio Fill Bar -->
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.25rem;">
+            <div class="profit-ratio-bar" id="profitRatioBar">
+              <div class="ratio-fill-prod" id="barFillProd" style="width: 28%;" title="Production Cost"></div>
+              <div class="ratio-fill-trans" id="barFillTrans" style="width: 4%;" title="Transport Cost"></div>
+              <div class="ratio-fill-profit" id="barFillProfit" style="width: 68%;" title="Net Profit"></div>
+            </div>
+            <div class="ratio-legend">
+              <div class="legend-item"><span class="legend-dot" style="background: #64748b;"></span> Production Cost</div>
+              <div class="legend-item"><span class="legend-dot" style="background: #8b5cf6;"></span> Transport</div>
+              <div class="legend-item"><span class="legend-dot" style="background: #10b981;"></span> Net Profit (Take Home)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FEATURE 2: WHAT-IF SIMULATOR -->
+        <div class="app-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3>🔮 <span data-i18n="whatIfTitle">What-If Scenario Simulator</span></h3>
+              <div class="card-subtitle">Instant local sensitivity testing — move sliders to see dynamic profit changes</div>
+            </div>
+            <button type="button" id="btnResetWhatIf" class="chip-label" style="cursor: pointer; background: transparent; border: 1px solid var(--border-medium); border-radius: 4px; padding: 2px 8px;">Reset Sliders</button>
+          </div>
+
+          <div class="slider-group">
+            <!-- Price Slider -->
+            <div class="slider-item">
+              <div class="slider-label-row">
+                <span>Selling Price (₹/kg)</span>
+                <span class="slider-live-val" id="valSliderPrice">₹28.60 / kg</span>
+              </div>
+              <input type="range" id="sliderPrice" min="10" max="80" step="0.5" value="28.5">
+            </div>
+
+            <!-- Yield Slider -->
+            <div class="slider-item">
+              <div class="slider-label-row">
+                <span>Expected Yield / Quantity (kg)</span>
+                <span class="slider-live-val" id="valSliderYield">4,000 kg</span>
+              </div>
+              <input type="range" id="sliderYield" min="500" max="30000" step="250" value="4000">
+            </div>
+
+            <!-- Transport Rate Slider -->
+            <div class="slider-item">
+              <div class="slider-label-row">
+                <span>Transport Rate (₹/km)</span>
+                <span class="slider-live-val" id="valSliderTransport">₹18 / km</span>
+              </div>
+              <input type="range" id="sliderTransport" min="5" max="60" step="1" value="18">
+            </div>
+          </div>
+
+          <div class="what-if-outcome-box">
+            <div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">SIMULATED NET PROFIT</div>
+              <div class="stat-value" id="whatIfSimulatedProfit">₹78,400</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">PROFIT VARIANCE (VS BASELINE)</div>
+              <div class="outcome-delta delta-positive" id="whatIfDeltaDisplay">± ₹0 (0.0%)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FEATURE 5: SELL NOW OR WAIT? -->
+        <div class="app-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3>⏱️ <span data-i18n="sellNowVsWaitTitle">Sell Now or Wait?</span></h3>
+              <div class="card-subtitle" data-i18n="sellNowVsWaitSub">Crop-specific daily spoilage curves compared against price projections</div>
+            </div>
+            <span class="badge-sell-now" id="sellWaitOptimalTag" style="font-size: 0.75rem; padding: 2px 8px;">Optimal: Today</span>
+          </div>
+
+          <div class="sell-wait-card-grid" id="sellWaitScenariosGrid">
+            <!-- Dynamic scenario cards populated by JS -->
+          </div>
+
+          <div style="margin-top: 0.5rem;">
+            <canvas id="chartSellVsWait" style="height: 180px;"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- COLUMN 2: MARKET RADAR, FAIR PRICE GUARD, WEATHER (SPAN 4) -->
+      <div class="col-4" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        
+        <!-- FEATURE 3: MARKET RADAR -->
+        <div class="app-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3>📡 <span data-i18n="marketRadarTitle">Market Radar</span></h3>
+              <div class="card-subtitle" data-i18n="marketRadarSub">Ranked by Net Profit after distance & transport</div>
+            </div>
+          </div>
+
+          <div class="mandi-list" id="mandiRadarList">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- FEATURE 4: FAIR PRICE GUARD -->
+        <div class="app-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3>🛡️ <span data-i18n="fairPriceTitle">Fair Price Guard</span></h3>
+              <div class="card-subtitle" data-i18n="fairPriceSub">Dynamic benchmark vs buyer offer</div>
+            </div>
+          </div>
+
+          <div class="fair-price-container">
+            <div class="fair-price-meter-row">
+              <div class="price-box buyer">
+                <span style="font-size: 0.72rem; color: #991b1b; font-weight: 700;">BUYER OFFER</span>
+                <span style="font-size: 1.35rem; font-weight: 800; color: #7f1d1d;" id="fpgBuyerOfferVal">₹22.00 / kg</span>
+                <span style="font-size: 0.7rem; color: #991b1b;">Local Village Trader</span>
+              </div>
+              <div class="price-box fair">
+                <span style="font-size: 0.72rem; color: #065f46; font-weight: 700;">EST. FAIR PRICE</span>
+                <span style="font-size: 1.35rem; font-weight: 800; color: #064e3b;" id="fpgFairPriceVal">₹27.50 / kg</span>
+                <span style="font-size: 0.7rem; color: #065f46;">Mandi Weight Avg</span>
+              </div>
+            </div>
+
+            <div id="fpgStatusBadge" class="fair-status-badge status-danger">
+              🔴 UNDERVALUED OFFER (-20.0%)
+            </div>
+
+            <p style="font-size: 0.8rem; color: var(--text-muted);" id="fpgRecommendationText">
+              Buyer is offering ₹5.50/kg below fair market rate.
+            </p>
+
+            <button type="button" id="btnOpenNegotiationModal" class="btn-negotiate">
+              <span>🤝</span> <span data-i18n="negotiateWithAiBtn">Negotiate with AI</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- LIVE WEATHER & AGRO-ADVISORY -->
+        <div class="app-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3>🌦️ <span data-i18n="weatherTitle">Live Weather</span></h3>
+              <div class="card-subtitle" id="weatherSourceTag">Open-Meteo API Realtime</div>
+            </div>
+            <span class="live-status-pill" id="weatherLiveBadge">🟢 LIVE</span>
+          </div>
+
+          <div class="weather-hero-row">
+            <div class="weather-temp-main">
+              <span class="weather-icon-large" id="weatherConditionIcon">⛅</span>
+              <div>
+                <div class="temp-degrees" id="weatherTempDegrees">29°C</div>
+                <div style="font-size: 0.8rem; font-weight: 600;" id="weatherConditionTitle">Partly Cloudy</div>
+              </div>
+            </div>
+
+            <div class="weather-stats-list">
+              <div>💧 Humidity: <b id="weatherHumidity">68%</b></div>
+              <div>🌧️ Rain Prob: <b id="weatherRainProb">20%</b></div>
+              <div>💨 Wind: <b id="weatherWind">14 km/h</b></div>
+              <div>⚠️ Risk: <b id="weatherTransitRisk">Low</b></div>
+            </div>
+          </div>
+
+          <div class="weather-forecast-strip" id="weatherForecastStrip">
+            <!-- Forecast days populated dynamically -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PRICE FORECAST CHART (SPAN 12) -->
+      <div class="col-12">
+        <div class="app-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3>📈 <span data-i18n="forecastTitle">7-Day Statistical Price Forecast Engine</span></h3>
+              <div class="card-subtitle" data-i18n="forecastDisclaimer">Statistical estimate based on moving average & mandi trends — not a guarantee.</div>
+            </div>
+            <span class="chip-label" id="forecastTrendDirectionTag">Trend: Bullish (Rising)</span>
+          </div>
+
+          <canvas id="chartPriceForecast" style="height: 240px;"></canvas>
+        </div>
+      </div>
+
+      <!-- SMART SELL MARKETPLACE (SPAN 6) -->
+      <div class="col-6">
+        <div class="app-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3>🏪 <span data-i18n="smartSellTitle">Smart Sell Marketplace</span></h3>
+              <div class="card-subtitle" data-i18n="smartSellSub">Connect with verified institutional buyers & create demo orders</div>
+            </div>
+          </div>
+
+          <div class="buyer-grid" id="smartSellBuyerGrid">
+            <!-- Buyers populated dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SMART BUY FARM INPUTS (SPAN 6) -->
+      <div class="col-6">
+        <div class="app-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h3>🛒 <span data-i18n="smartBuyTitle">Smart Buy Farm Inputs</span></h3>
+              <div class="card-subtitle" data-i18n="smartBuySub">AI-filtered agricultural inputs for your active crop stage</div>
+            </div>
+          </div>
+
+          <div class="product-grid" id="smartBuyProductGrid">
+            <!-- Products populated dynamically -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ==========================================================================
+       AI ADVISOR CONVERSATIONAL CHATBOT (FLOATING)
+       ========================================================================== -->
+  <div class="ai-advisor-drawer">
+    <button type="button" id="toggleAdvisorChatBtn" class="advisor-trigger-btn" title="Open STARK AI Advisor">
+      🤖
+    </button>
+
+    <div id="advisorChatWindow" class="advisor-chat-window hidden">
+      <div class="chat-header">
+        <h4><span>🌾</span> <span data-i18n="advisorTitle">STARK AI Advisor</span></h4>
+        <button type="button" id="closeAdvisorChatBtn" class="btn-close-chat">&times;</button>
+      </div>
+
+      <div class="chat-messages" id="advisorChatMessages">
+        <div class="chat-bubble bot">
+          👋 Hello! I am STARK, your active farm decision assistant. I have full real-time access to your farm inputs, current mandi prices, weather conditions, and profit models.
+          <br><br>
+          How can I assist your crop decisions today?
+        </div>
+      </div>
+
+      <div class="quick-prompts-bar">
+        <button type="button" class="prompt-chip" data-query="Should I sell today or wait?">Should I sell today?</button>
+        <button type="button" class="prompt-chip" data-query="Which market is better for profit?">Which market is best?</button>
+        <button type="button" class="prompt-chip" data-query="Is my buyer offer fair?">Is buyer offer fair?</button>
+        <button type="button" class="prompt-chip" data-query="What if price drops 10%?">What if price drops?</button>
+      </div>
+
+      <form id="advisorChatForm" class="chat-input-bar">
+        <input type="text" id="advisorChatInput" class="chat-input" placeholder="Ask anything about your crop..." autocomplete="off">
+        <button type="submit" class="btn-send-chat" data-i18n="sendBtn">Ask</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 1: MY FARM PROFILE & COST EDITOR
+       ========================================================================== -->
+  <div id="farmModal" class="modal-overlay hidden">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>🌱 Edit Farm Profile & Costs</h3>
+        <button type="button" class="btn-close-chat" id="closeFarmModalBtn" style="color: var(--text-main);">&times;</button>
+      </div>
+      <form id="farmProfileForm">
+        <div class="modal-body">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Farmer Name</label>
+              <input type="text" id="inpFarmerName" class="form-control" value="Ramesh K." required>
+            </div>
+            <div class="form-group">
+              <label>Location (District, State)</label>
+              <input type="text" id="inpDistrictState" class="form-control" value="Karur, Tamil Nadu" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Crop</label>
+              <select id="inpCrop" class="form-control">
+                <option value="tomato">Tomato (தக்காளி / टमाटर)</option>
+                <option value="potato">Potato (உருளைக்கிழங்கு / आलू)</option>
+                <option value="onion">Onion (வெங்காயம் / प्याज)</option>
+                <option value="chilli">Green Chilli (பச்சை மிளகாய் / हरी मिर्च)</option>
+                <option value="rice">Paddy / Rice (நெல் / धान)</option>
+                <option value="banana">Banana (வாழை / केला)</option>
+                <option value="wheat">Wheat (கோதுமை / गेहूं)</option>
+                <option value="cotton">Cotton (பருத்தி / कपास)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Crop Variety</label>
+              <input type="text" id="inpVariety" class="form-control" value="Vaibhav Hybrid">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Land Area (Acres)</label>
+              <input type="number" id="inpLandArea" class="form-control" step="0.1" value="2.0" required>
+            </div>
+            <div class="form-group">
+              <label>Expected Yield (Kg)</label>
+              <input type="number" id="inpYieldKg" class="form-control" step="100" value="4000" required>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Crop Stage</label>
+              <select id="inpCropStage" class="form-control">
+                <option value="Sowing">Sowing</option>
+                <option value="Vegetative">Vegetative Growth</option>
+                <option value="Flowering">Flowering / Fruiting</option>
+                <option value="Harvesting" selected>Harvesting</option>
+                <option value="Post-Harvest Stored">Post-Harvest Stored</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Current Buyer Offer (₹/kg)</label>
+              <input type="number" id="inpBuyerOffer" class="form-control" step="0.5" value="22.0">
+            </div>
+          </div>
+
+          <h4 style="font-size: 0.95rem; margin-top: 0.5rem; color: var(--primary-dark);">💰 Production Cost Breakdown (₹)</h4>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Seeds Cost (₹)</label>
+              <input type="number" id="inpCostSeeds" class="form-control" value="4200">
+            </div>
+            <div class="form-group">
+              <label>Fertilizer Cost (₹)</label>
+              <input type="number" id="inpCostFertilizer" class="form-control" value="6800">
+            </div>
+            <div class="form-group">
+              <label>Labour Cost (₹)</label>
+              <input type="number" id="inpCostLabour" class="form-control" value="11500">
+            </div>
+            <div class="form-group">
+              <label>Irrigation Cost (₹)</label>
+              <input type="number" id="inpCostIrrigation" class="form-control" value="3200">
+            </div>
+            <div class="form-group">
+              <label>Pesticides Cost (₹)</label>
+              <input type="number" id="inpCostPesticides" class="form-control" value="4300">
+            </div>
+            <div class="form-group">
+              <label>Other Costs (₹)</label>
+              <input type="number" id="inpCostOther" class="form-control" value="2000">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Transport Rate (₹/km)</label>
+              <input type="number" id="inpTransportRate" class="form-control" value="18">
+            </div>
+            <div class="form-group">
+              <label>Storage Cost (₹/day)</label>
+              <input type="number" id="inpStorageRate" class="form-control" value="400">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="btnCancelFarmModal">Cancel</button>
+          <button type="submit" class="btn-primary" data-i18n="saveFarmBtn">Save & Recalculate AI</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 2: EXPLAINABILITY & WEIGHT CONFIGURATION MODAL
+       ========================================================================== -->
+  <div id="explainabilityModal" class="modal-overlay hidden">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>⚖️ STARK Transparent Decision Scoring</h3>
+        <button type="button" class="btn-close-chat" id="closeExplainabilityModalBtn" style="color: var(--text-main);">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          Unlike opaque black-box systems, STARK computes its final recommendations using a deterministic multi-objective scoring formula with weighted parameters:
+        </p>
+
+        <div id="scoringBreakdownContainer">
+          <!-- Dynamic bars populated by ChartHelper -->
+        </div>
+
+        <div style="background: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md); font-size: 0.8rem;">
+          <div style="font-weight: 700; margin-bottom: 0.4rem;">Scoring Formula Architecture:</div>
+          <code>Decision Score = (Profit × 35%) + (Market × 25%) + (Spoilage × 20%) + (Transport × 10%) + (Weather × 10%)</code>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-primary" id="btnCloseExplainabilityModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 3: AI NEGOTIATION SCRIPT GENERATOR MODAL
+       ========================================================================== -->
+  <div id="negotiationModal" class="modal-overlay hidden">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>🤝 AI Negotiation Assistant</h3>
+        <button type="button" class="btn-close-chat" id="closeNegotiationModalBtn" style="color: var(--text-main);">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-size: 0.82rem; font-weight: 600;">Suggested Counter Target:</div>
+          <span class="decision-action-badge badge-negotiate" id="negTargetRangeVal" style="font-size: 0.95rem; padding: 2px 10px;">₹26.5 - ₹28.0 / kg</span>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid var(--border-medium); border-radius: var(--radius-md); padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: #6d28d9;">📋 READY-TO-USE NEGOTIATION SCRIPT:</div>
+          <div id="negScriptText" style="font-size: 0.9rem; line-height: 1.5; color: #1e293b; font-style: italic;">
+            "Hello. The produce I am offering is freshly harvested Grade-A quality. Today's mandi rate is trading higher. I can close with you today at ₹27/kg."
+          </div>
+          <div id="negClosingTip" style="font-size: 0.78rem; color: #047857; font-weight: 600;"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" id="btnCopyNegotiationScript">📋 Copy Script</button>
+        <button type="button" class="btn-primary" id="btnCloseNegotiationModal">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 4: DEMO SELL ORDER RECEIPT
+       ========================================================================== -->
+  <div id="sellOrderModal" class="modal-overlay hidden">
+    <div class="modal-container" style="max-width: 520px;">
+      <div class="modal-header" style="background: #f0fdf4;">
+        <h3 style="color: #065f46;">🎉 Sell Request Created (Demo Order)</h3>
+        <button type="button" class="btn-close-chat" id="closeSellOrderModalBtn" style="color: var(--text-main);">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="text-align: center; padding: 0.5rem 0;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">📄</div>
+          <h4 style="font-size: 1.15rem; color: #064e3b;" id="receiptOrderTitle">Order Confirmed with FreshDirect</h4>
+          <span class="sih-badge" style="margin-top: 4px; display: inline-block;">SIH Prototype Demo Transaction</span>
+        </div>
+
+        <div style="background: var(--bg-subtle); border-radius: var(--radius-md); padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Order ID:</span>
+            <b id="receiptOrderId">STARK-2026-8891</b>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Crop & Quantity:</span>
+            <b id="receiptCropQty">Tomato • 4,000 kg</b>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Agreed Price:</span>
+            <b id="receiptPrice">₹28.50 / kg</b>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Expected Gross Payout:</span>
+            <b style="color: #059669; font-size: 1rem;" id="receiptTotalRevenue">₹1,14,000</b>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Payment Terms:</span>
+            <b id="receiptPayment">Direct Bank UPI in 2 Hours</b>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Pickup Slot:</span>
+            <b>Tomorrow 06:30 AM (Farm Gate)</b>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-primary" id="btnCloseSellOrderModal">Close Receipt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       FOOTER & TRUST BADGES
+       ========================================================================== -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <div class="footer-disclaimer">
+        <b>STARK — Smart India Hackathon 2026 Prototype (Problem Statement: SIH26132)</b><br>
+        Developed by Team STARK (Subiksha S, Sudheksha P, Laksha M, Sri Rohith P, Bala Vignesh P, Gunaseelan K).
+        <br>
+        <i>Disclaimer: STARK recommendations are data-driven decision support tools computed dynamically from active inputs, live Open-Meteo weather data, and regional APMC benchmarks. Not a financial guarantee.</i>
+      </div>
+      <div style="text-align: right; font-size: 0.75rem;">
+        <div>Weather Feed: <b>Open-Meteo Global API</b></div>
+        <div>Mandi Engine: <b>APMC / Agmarknet Model</b></div>
+        <div id="footerTimestamp">Updated: Live</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Core Application Scripts (ES Modules) -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
