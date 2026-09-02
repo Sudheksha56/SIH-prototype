@@ -1,5 +1,5 @@
 # Simple, ultra-lightweight static HTTP server for STARK SIH prototype
-$port = 8080
+$port = 8081
 $path = "c:\Users\sudheksha p\OneDrive\Desktop\SIH-prototype"
 
 $listener = New-Object System.Net.HttpListener
